@@ -45,22 +45,42 @@ class Matrix {
     }
 
     dot(m) {
-        let multipliedData = new Array(this.rows)
-            .fill()
-            .map(() => new Array(m.cols).fill(0));
+        if (this.rows == m.cols){
+          let multipliedData = new Array(this.rows)
+              .fill()
+              .map(() => new Array(m.cols).fill(0));
 
-        multipliedData = multipliedData.map((row, i) => {
-            return row.map((col, j) => {
-                return this.data[i].reduce((prev, entry, idx) => {
-                    return prev + entry * m.get(idx, j);
-                });
-            });
-        });
+          for (let i = 0; i < this.rows; i++){
+              for (let j = 0; j < m.cols; j++){
+                  let sum = 0;
+                  for (let k = 0; k < this.cols; k++){
+                      sum += this.get(i, k) * m.get(k, j);
+                  }
+                  multipliedData[i][j] = sum;
+              }
+          }
 
-        return new Matrix(multipliedData);
+          return new Matrix(multipliedData);
+        }
+    }
+
+    multiplyRow(row, x){
+        for (let i = 0; i < this.cols; i++){
+            this.set(row, i, this.get(row, i)*x);
+        }
+    }
+
+    addMultiplyOfRow(a, b, c){
+        for (let i = 0; i < this.cols; i++){
+            this.set(a, i, this.get(a, i)+c*this.get(b, i));
+        }
     }
 
     //Special operations
+    swap(i, j){
+        [this.data[i], this.data[j]] = [this.data[j], this.data[i]];
+    }
+
     transpose() {
         const transposeArray = (array) => {
             return array[0].map((col, i) => {
@@ -79,6 +99,14 @@ class Matrix {
         }
     }
 
+    productDiagonal() {
+        if (Matrix.isSquare(this)) {
+            return this.data.reduce((prev, row, idx) => {
+                return prev * this.get(idx, idx);
+            }, 1);
+        }
+    }
+
     minor(i, j) {
         return new Matrix(
             this.data.slice(0, i).concat(this.data.slice(i + 1))
@@ -86,23 +114,9 @@ class Matrix {
         );
     }
 
-    determinant() {
-        if (Matrix.isSquare(this)) {
-            if (this.rows === 1) {
-                return this.get(0, 0);
-            }
-
-            return this.data[0].reduce((prev, row, j) => {
-                return prev + Math.pow(-1, j) *
-                    this.get(j, 0) *
-                    this.minor(j, 0).determinant();
-            }, 0);
-        }
-    }
-
     //Cloning
     clone() {
-        return new Matrix(this.data.clone());
+        return new Matrix(clone2DArray(this.data));
     }
 
     //Printing
@@ -117,5 +131,46 @@ class Matrix {
 
     static isSquare(m) {
         return m.rows === m.cols;
+    }
+
+    static isLowerTriangular(m){
+        if (!Matrix.isSquare(m)){
+            return false;
+        }
+
+        for (let col = 0; col < this.cols; col++){
+            for (let row = col + 1; row < this.rows; row++){
+                if (m.get(row, col) !== 0){
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    static eye(n){
+        const array = new Array(n).fill().map(() =>
+            new Array(n).fill(0));
+
+        for (let i = 0; i < n; i++){
+            array[i][i] = 1;
+        }
+
+        return new Matrix(array);
+    }
+
+    static zeroes(m, n){
+        const array = new Array(m).fill().map(() =>
+            new Array(n).fill(0));
+
+        return new Matrix(array);
+    }
+
+    static randomize(m, n){
+        const array = new Array(m).fill().map(() =>
+            new Array(n).fill().map(() => 1 - 2 * Math.random()));
+
+        return new Matrix(array);
     }
 }
