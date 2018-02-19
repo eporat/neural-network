@@ -24,6 +24,10 @@ class Matrix {
     }
 
     elementwise(x, func) {
+        if (typeof(x) == "function"){
+            this.map(entry => x(entry));
+        }
+
         if (typeof(x) === "number") {
             this.map(entry => func(entry, x));
         }
@@ -33,15 +37,17 @@ class Matrix {
                 this.map((entry, i, j) => func(entry, x.get(i, j)));
             }
         }
+
+        return this;
     }
 
     //Arithmetic operations
     add(x) {
-        this.elementwise(x, (a, b) => a + b);
+        return this.elementwise(x, (a, b) => a + b);
     }
 
     multiply(x) {
-        this.elementwise(x, (a, b) => a * b);
+        return this.elementwise(x, (a, b) => a * b);
     }
 
     dot(m) {
@@ -167,10 +173,16 @@ class Matrix {
         return new Matrix(array);
     }
 
-    static randomize(m, n){
+    static random(m, n){
         const array = new Array(m).fill().map(() =>
             new Array(n).fill().map(() => 1 - 2 * Math.random()));
 
         return new Matrix(array);
+    }
+
+
+    //Conversion
+    static toIntegers(matrix){
+        return matrix.elementwise(Math.trunc)
     }
 }

@@ -1,4 +1,5 @@
 class MatrixCalculator {
+
     static rowEchelonForm(matrix, operations=undefined){
         const tempMatrix = matrix.clone();
 
@@ -41,6 +42,11 @@ class MatrixCalculator {
             }
 
         }
+        return tempMatrix;
+    }
+
+    static canonicalForm(matrix, operations=undefined){
+        const tempMatrix = MatrixCalculator.rowEchelonForm(matrix, operations);
 
         for (let col = tempMatrix.cols - 1; col >=0 ; col --){
             for (let nextRow = col - 1; nextRow >= 0; nextRow --){
@@ -64,7 +70,7 @@ class MatrixCalculator {
         }
 
         const operations = [];
-        const rowEchelonMatrix = MatrixCalculator.rowEchelonForm(matrix, operations);
+        const rowEchelonMatrix = MatrixCalculator.canonicalForm(matrix, operations);
 
         if (rowEchelonMatrix){
             if (Matrix.isLowerTriangular(rowEchelonMatrix)){
@@ -83,26 +89,26 @@ class MatrixCalculator {
 
     static determinant(matrix) {
 
-        // function standardDeterminant(matrix){
-        //     if (Matrix.isSquare(matrix)) {
-        //         if (matrix.rows === 1) {
-        //             return matrix.get(0, 0);
-        //         }
-        //
-        //         return matrix.data[0].reduce((prev, row, j) => {
-        //             return prev + Math.pow(-1, j) *
-        //                 matrix.get(j, 0) *
-        //                 matrix.minor(j, 0).determinant();
-        //         }, 0);
-        //     }
-        // }
+        function standardDeterminant(matrix){
+            if (Matrix.isSquare(matrix)) {
+                if (matrix.rows === 1) {
+                    return matrix.get(0, 0);
+                }
+        
+                return matrix.data[0].reduce((prev, row, j) => {
+                    return prev + Math.pow(-1, j) *
+                        matrix.get(j, 0) *
+                        matrix.minor(j, 0).determinant();
+                }, 0);
+            }
+        }
 
         function rowEchelonDeterminant(matrix){
             const operations = [];
             const rowEchelonMatrix = MatrixCalculator.
                                         rowEchelonForm(matrix, operations);
             if (rowEchelonMatrix){
-                let determinant = rowEchelonMatrix.productDiagonal();
+                let determinant = 1;
                 operations.forEach((operation) => {
                     if (operation.type === "mult"){
                         determinant /= operation.num;
@@ -118,6 +124,5 @@ class MatrixCalculator {
         }
 
         return rowEchelonDeterminant(matrix);
-
     }
 }
