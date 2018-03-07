@@ -1,5 +1,4 @@
 class MatrixCalculator {
-
     static rowEchelonForm(matrix, operations=undefined){
         const tempMatrix = matrix.clone();
 
@@ -12,7 +11,7 @@ class MatrixCalculator {
             }
 
             if (row == tempMatrix.rows){
-                return false;
+                return undefined;
             }
 
             if (col !== row){
@@ -47,17 +46,20 @@ class MatrixCalculator {
 
     static canonicalForm(matrix, operations=undefined){
         const tempMatrix = MatrixCalculator.rowEchelonForm(matrix, operations);
+        if (!tempMatrix){
+            return undefined;
+        }
 
         for (let col = tempMatrix.cols - 1; col >=0 ; col --){
             for (let nextRow = col - 1; nextRow >= 0; nextRow --){
                 if (operations !== undefined){
                     operations.push(new RowOperation("addOther", nextRow, col,
-                    - tempMatrix.get(nextRow, col) / tempMatrix.get(col, col)));
+                    - tempMatrix.get(nextRow, col) / 1));
                 }
 
                 tempMatrix.addMultiplyOfRow(
                     nextRow, col,
-                    - tempMatrix.get(nextRow, col) / tempMatrix.get(col, col));
+                    - tempMatrix.get(nextRow, col) / 1);
             }
         }
 
@@ -70,10 +72,10 @@ class MatrixCalculator {
         }
 
         const operations = [];
-        const rowEchelonMatrix = MatrixCalculator.canonicalForm(matrix, operations);
+        const canonicalMatrix = MatrixCalculator.canonicalForm(matrix, operations);
 
-        if (rowEchelonMatrix){
-            if (Matrix.isLowerTriangular(rowEchelonMatrix)){
+        if (canonicalMatrix){
+            if (Matrix.isLowerTriangular(canonicalMatrix)){
                 const tempMatrix = Matrix.eye(matrix.rows);
 
                 operations.forEach((operation) => {

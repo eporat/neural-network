@@ -10,8 +10,23 @@ class Matrix {
         this.data[row][column] = value;
     }
 
+    setRow(index, row){
+        if (row instanceof Matrix){
+            this.data[index] = row.data[0];
+        }
+        this.data[index] = row;
+    }
+
     get(row, column) {
         return this.data[row][column];
+    }
+
+    getRow(index){
+        return this.data[index];
+    }
+
+    size(){
+        return this.rows * this.cols;
     }
 
     //Second-order functions
@@ -24,7 +39,7 @@ class Matrix {
     }
 
     elementwise(x, func) {
-        if (typeof(x) == "function"){
+        if (x instanceof Function){
             this.map(entry => x(entry));
         }
 
@@ -46,12 +61,24 @@ class Matrix {
         return this.elementwise(x, (a, b) => a + b);
     }
 
+    sub(x){
+        return this.elementwise(x, (a, b) => a - b);
+    }
+
     multiply(x) {
         return this.elementwise(x, (a, b) => a * b);
     }
 
+    div(x) {
+        return this.elementwise(x, (a, b) => a / b);
+    }
+
+    square(){
+        return this.multiply(this);
+    }
+
     dot(m) {
-        if (this.rows == m.cols){
+        if (this.cols == m.rows){
           let multipliedData = new Array(this.rows)
               .fill()
               .map(() => new Array(m.cols).fill(0));
@@ -112,6 +139,18 @@ class Matrix {
             }, 1);
         }
     }
+    
+    sum(){
+        return this.data.reduce((sumMatrix, row) => {
+            return sumMatrix + row.reduce((sumRow, element) => {
+                return sumRow + element;
+            }, 0)
+        }, 0);    
+    }
+
+    average(){
+        return this.sum() / this.size();
+    }
 
     minor(i, j) {
         return new Matrix(
@@ -130,7 +169,24 @@ class Matrix {
         console.table(this.data);
     }
 
+    //Partition
+    partition(from_i, to_i, from_j, to_j){
+        return new Matrix(
+            this.data.slice(from_i, to_i)
+            .map(row => row.slice(from_j, to_j))
+        );
+    }
+
     //Static functions
+    static map(matrix, func){
+        return matrix.clone().map(func);
+    }
+
+    static elementwise(matrix, x, func){
+        return matrix.clone().elementwise(x, func);
+    }
+
+
     static compareDimensions(a, b) {
         return a.rows === b.rows && a.cols === b.cols;
     }
@@ -173,6 +229,13 @@ class Matrix {
         return new Matrix(array);
     }
 
+    static ones(m, n){
+        const array = new Array(m).fill().map(() =>
+            new Array(n).fill(1));
+
+        return new Matrix(array);
+    }
+
     static random(m, n){
         const array = new Array(m).fill().map(() =>
             new Array(n).fill().map(() => 1 - 2 * Math.random()));
@@ -180,9 +243,44 @@ class Matrix {
         return new Matrix(array);
     }
 
+    static add(a, b){
+        return a.clone().add(b);
+    }
+
+    static sub(a, b){
+        return a.clone().sub(b);
+    }
+
+    static multiply(a, b){
+        return a.clone().multiply(b);
+    }
 
     //Conversion
     static toIntegers(matrix){
-        return matrix.elementwise(Math.trunc)
+        return Matrix.elementwise(matrix, Math.trunc);
+    }
+
+    //Activation Function
+    static sigmoid(matrix){
+        return Matrix.elementwise(matrix, sigmoid);
+    }
+
+    static sigmoid_prime(matrix){
+        return Matrix.elementwise(matrix, x => sigmoid(x) * (1 - sigmoid(x)));
+    }
+
+    static relu(matrix){
+        return Matrix.elementwise(matrix, x => Math.max(x, 0));
+    }
+
+    static tanh(matrix){
+        return Matrix.elementwise(matrix, x => (Math.exp(x) + Math.exp(-x))/(Math.exp(x) - Math.exp(-x)));
+    }
+
+    //Strassen's algorithm
+    static fastDot(a, b){
+        const A = new Matrix
     }
 }
+
+const sigmoid = x => 1 / (1 + Math.exp(-x))
